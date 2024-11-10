@@ -1,0 +1,133 @@
+<!DOCTYPE html>
+<html lang="cs">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>UP Vision</title>
+
+    <!-- Načtení AFrame a MindAR skriptu -->
+    <script src="https://aframe.io/releases/1.6.0/aframe.min.js"></script>
+    <script src="https://cdn.jsdelivr.net/npm/mind-ar@1.2.5/dist/mindar-image-aframe.prod.js"></script>
+    
+    <style>
+        /* Styl tlačítka Start uprostřed obrazovky */
+        #startButton {
+            position: fixed;
+            top: 50%;
+            left: 50%;
+            transform: translate(-50%, -50%);
+            padding: 15px 30px;
+            font-size: 18px;
+            font-weight: bold;
+            color: #fff;
+            background-color: #007bff;
+            border: none;
+            border-radius: 5px;
+            cursor: pointer;
+        }
+
+        /* Styl tlačítka Další model dole */
+        #nextModelButton {
+            display: none; /* skryté, dokud se nezobrazí po kliknutí na Start */
+            position: fixed;
+            bottom: 20px;
+            left: 50%;
+            transform: translateX(-50%);
+            padding: 10px 20px;
+            font-size: 16px;
+            color: #fff;
+            background-color: #28a745;
+            border: none;
+            border-radius: 5px;
+            cursor: pointer;
+        }
+    </style>
+</head>
+<body>
+
+    <!-- Tlačítko Start -->
+    <button id="startButton">Start</button>
+    
+    <!-- Tlačítko Další model -->
+    <button id="nextModelButton">Další model</button>
+
+    <script>
+        // Vybereme tlačítko Start a tlačítko Další model
+        const startButton = document.getElementById("startButton");
+        const nextModelButton = document.getElementById("nextModelButton");
+
+        let currentModel = 'https://davmpu.github.io/upvision/nezamestnanost_compressed.glb';
+        const alternateModel = 'https://davmpu.github.io/upvision/tree-opt.glb';
+
+        // Přidáme událost pro spuštění skriptu po kliknutí na tlačítko Start
+        startButton.addEventListener("click", function() {
+            startButton.style.display = "none"; // Skryje tlačítko Start
+            nextModelButton.style.display = "block"; // Zobrazí tlačítko Další model
+
+            // Vytvoření AR scény v JavaScriptu a přidání do stránky
+            const scene = document.createElement('a-scene');
+            scene.setAttribute('mindar-image', 'imageTargetSrc: https://davmpu.github.io/upvision/targets.mind;');
+            scene.setAttribute('color-space', 'sRGB');
+            scene.setAttribute('renderer', 'colorManagement: true, physicallyCorrectLights');
+            scene.setAttribute('vr-mode-ui', 'enabled: false');
+            scene.setAttribute('device-orientation-permission-ui', 'enabled: false');
+
+            // Načtení modelu do assets
+            const assets = document.createElement('a-assets');
+            const model = document.createElement('a-asset-item');
+            model.setAttribute('id', 'avatarModel');
+            model.setAttribute('src', currentModel);
+            assets.appendChild(model);
+
+            // Přidání kamery
+            const camera = document.createElement('a-camera');
+            camera.setAttribute('position', '0 0 0');
+            camera.setAttribute('look-controls', 'enabled: false');
+
+            // Nastavení image target
+            const target = document.createElement('a-entity');
+            target.setAttribute('mindar-image-target', 'targetIndex: 0');
+
+            // Nastavení modelu jako funkce pro přidání
+            function addModel() {
+                const gltfModel = document.createElement('a-gltf-model');
+                gltfModel.setAttribute('rotation', '0 0 0');
+                gltfModel.setAttribute('position', '0 0 0.1');
+                gltfModel.setAttribute('scale', '0.01 0.01 0.01');
+                gltfModel.setAttribute('src', currentModel);
+                gltfModel.setAttribute('id', 'modelEntity'); // Přidání ID pro pozdější výběr
+                target.appendChild(gltfModel);
+            }
+
+            // Přidání modelu poprvé
+            addModel();
+
+            // Sestavení scény
+            scene.appendChild(assets);
+            scene.appendChild(camera);
+            scene.appendChild(target);
+
+            // Přidání scény do těla stránky
+            document.body.appendChild(scene);
+
+            // Funkce pro přepnutí modelu po kliknutí na Další model
+            nextModelButton.addEventListener("click", function() {
+                // Přepne mezi dvěma modely
+                currentModel = currentModel === 'https://davmpu.github.io/upvision/nezamestnanost_compressed.glb'
+                    ? alternateModel
+                    : 'https://davmpu.github.io/upvision/nezamestnanost_compressed.glb';
+
+                // Najdeme a odstraníme aktuální model
+                const existingModel = document.getElementById('modelEntity');
+                if (existingModel) {
+                    existingModel.parentNode.removeChild(existingModel);
+                }
+
+                // Přidáme nový model s aktualizovaným src
+                addModel();
+            });
+        });
+    </script>
+
+</body>
+</html>
